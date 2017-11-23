@@ -3,7 +3,7 @@ lazy val commonSettings = Seq(
   organization := "com.coding42",
   name := "DynamoS",
   description := "DynamoS is a Scala to DynamoDB conversion library",
-  version := "0.1-SNAPSHOT",
+  version := "0.1.1-SNAPSHOT",
   scalaVersion := "2.12.4"
 )
 

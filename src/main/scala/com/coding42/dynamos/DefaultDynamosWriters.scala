@@ -5,7 +5,7 @@ import scala.collection.JavaConverters._
 
 trait DefaultDynamosWriters {
 
-  implicit object StringWriter extends DynamosWriter[String] {
+  implicit object StringWriter extends DynamosWriter[String] { // TODO handle empty strings
     override def write(a: String): AttributeValue = new AttributeValue(a)
   }
 
@@ -13,7 +13,7 @@ trait DefaultDynamosWriters {
     override def write(a: AttributeValue): AttributeValue = a
   }
 
-  implicit def seqWriter[A](implicit aWriter: DynamosWriter[A]): DynamosWriter[Iterable[A]] = // TODO
+  implicit def iterableWriter[A](implicit aWriter: DynamosWriter[A]): DynamosWriter[Iterable[A]] = // TODO
     (a: Iterable[A]) => new AttributeValue().withL(a.map(aWriter.write).toSeq.asJava)
 
   implicit def mapWriter[A](implicit aWriter: DynamosWriter[A]): DynamosWriter[collection.Map[String, A]] =
