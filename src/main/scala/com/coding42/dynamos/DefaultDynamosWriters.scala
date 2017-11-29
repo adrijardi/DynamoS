@@ -1,23 +1,42 @@
 package com.coding42.dynamos
 
 import com.amazonaws.services.dynamodbv2.model.AttributeValue
+
 import scala.collection.JavaConverters._
 
 trait DefaultDynamosWriters {
 
-  implicit object StringWriter extends DynamosWriter[String] { // TODO handle empty strings
-    override def write(a: String): AttributeValue = new AttributeValue(a)
-  }
+  implicit val stringWriter: DynamosWriter[String] = (a: String) =>
+    if(a.nonEmpty) {
+      new AttributeValue(a)
+    } else {
+      new AttributeValue().withNULL(true)
+    }
 
-  implicit object AttributeValueWriter extends DynamosWriter[AttributeValue] {
-    override def write(a: AttributeValue): AttributeValue = a
-  }
+  implicit val longWriter: DynamosWriter[Long] = (a: Long) => new AttributeValue().withN(a.toString)
 
-  implicit def iterableWriter[A](implicit aWriter: DynamosWriter[A]): DynamosWriter[Iterable[A]] = // TODO
-    (a: Iterable[A]) => new AttributeValue().withL(a.map(aWriter.write).toSeq.asJava)
+  implicit val intWriter: DynamosWriter[Int] = (a: Int) => new AttributeValue().withN(a.toString)
+
+  implicit val doubleWriter: DynamosWriter[Double] = (a: Double) => new AttributeValue().withN(a.toString)
+
+  implicit val floatWriter: DynamosWriter[Float] = (a: Float) => new AttributeValue().withN(a.toString)
+
+  implicit val boolWriter: DynamosWriter[Boolean] = (a: Boolean) => new AttributeValue().withBOOL(a)
+
+  implicit val attributeValueWriter: DynamosWriter[AttributeValue] = (a: AttributeValue) => a
+
+  implicit def seqWriter[A](implicit aWriter: DynamosWriter[A]): DynamosWriter[Seq[A]] =
+    (a: Seq[A]) => new AttributeValue().withL(a.map(aWriter.write).asJava)
+
+  implicit def setWriter[A](implicit aWriter: DynamosWriter[A]): DynamosWriter[Set[A]] =
+    (a: Set[A]) => new AttributeValue().withL(a.map(aWriter.write).asJava)
 
   implicit def mapWriter[A](implicit aWriter: DynamosWriter[A]): DynamosWriter[collection.Map[String, A]] =
     (a: collection.Map[String, A]) => new AttributeValue().withM(a.mapValues(aWriter.write).asJava)
+
+  implicit def optionWriter[A](implicit aWriter: DynamosWriter[A]): DynamosWriter[Option[A]] =
+    (a: Option[A]) =>
+      a.map(aWriter.write).getOrElse(new AttributeValue().withNULL(true))
 
 }
 

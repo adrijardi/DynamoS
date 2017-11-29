@@ -1,5 +1,7 @@
 package com.coding42
 
+import java.util
+
 import com.amazonaws.services.dynamodbv2.model.{AttributeValue, GetItemResult}
 
 import scala.collection.JavaConverters._
@@ -7,6 +9,10 @@ import scala.language.implicitConversions
 
 // TODO Add custom handler for the id that requires it to be a String somehow
 package object dynamos {
+
+  implicit class ToDynamoKey[A : DynamosWriter](map: Map[String, A]) {
+    def toDynamoKey: util.Map[String, AttributeValue] = map.mapValues(_.toDynamoDb).asJava
+  }
 
   implicit class ToDynamoIdOps[A](a: A)(implicit writer: DynamosWriter[A]) {
     def toDynamoDb: AttributeValue = writer.write(a)
