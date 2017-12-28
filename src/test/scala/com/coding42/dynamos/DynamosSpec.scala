@@ -144,6 +144,6 @@ class DynamosSpec extends WordSpec with ScalaFutures with OptionValues with Inte
     client.single(new PutItemRequest(tableName, item.toDynamoDb.getM)).futureValue
 
     val result = client.single(new GetItemRequest(tableName, Map("id" -> id).toDynamoKey)).futureValue
-    Dynamos.fromDynamo[A](result).value shouldBe item
+    Dynamos.fromDynamo[A](result).value shouldBe Right(item)
   }
 }

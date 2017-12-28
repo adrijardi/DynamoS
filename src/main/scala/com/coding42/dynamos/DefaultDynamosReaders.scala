@@ -1,79 +1,94 @@
 package com.coding42.dynamos
 
 import com.amazonaws.services.dynamodbv2.model.AttributeValue
+import com.coding42.util.EitherUtil
 
 import scala.collection.JavaConverters._
 import scala.collection.generic.CanBuildFrom
 import scala.language.higherKinds
-import scala.util.Try
 
 trait DefaultDynamosReaders {
 
-  case class ReadingException(msg: String) extends Exception(msg) // TODO use either instead
-
   implicit object StringReader extends DynamosReader[String] {
-    override def read(a: AttributeValue): String = if(a.isNULL) "" else a.getS
+    override def read(a: AttributeValue): DynamosResult[String] =
+      if (a.isNULL)
+        Right("")
+      else
+        Option(a.getS)
+          .toRight(DynamosParsingError("String"))
   }
 
   implicit object LongReader extends DynamosReader[Long] {
-    override def read(a: AttributeValue): Long =
+    override def read(a: AttributeValue): DynamosResult[Long] =
       Option(a.getN)
         .map(_.toLong)
-        .getOrElse(throw ReadingException("cannot read Long"))
+        .toRight(DynamosParsingError("Long"))
   }
 
   implicit object IntReader extends DynamosReader[Int] {
-    override def read(a: AttributeValue): Int =
+    override def read(a: AttributeValue): DynamosResult[Int] =
       Option(a.getN)
         .map(_.toInt)
-        .getOrElse(throw ReadingException("cannot read Int"))
+        .toRight(DynamosParsingError("Int"))
   }
 
   implicit object DoubleReader extends DynamosReader[Double] {
-    override def read(a: AttributeValue): Double =
+    override def read(a: AttributeValue): DynamosResult[Double] =
       Option(a.getN)
         .map(_.toDouble)
-        .getOrElse(throw ReadingException("cannot read Double"))
+        .toRight(DynamosParsingError("Double"))
   }
 
   implicit object FloatReader extends DynamosReader[Float] {
-    override def read(a: AttributeValue): Float =
+    override def read(a: AttributeValue): DynamosResult[Float] =
       Option(a.getN)
         .map(_.toFloat)
-        .getOrElse(throw ReadingException("cannot read Float"))
+        .toRight(DynamosParsingError("Float"))
   }
 
   implicit object BoolReader extends DynamosReader[Boolean] {
-    override def read(a: AttributeValue): Boolean =
+    override def read(a: AttributeValue): DynamosResult[Boolean] =
       Option(a.getBOOL)
-        .getOrElse(throw ReadingException("cannot read Boolean"))
+        .map(Boolean.unbox)
+        .toRight(DynamosParsingError("Boolean"))
   }
 
   implicit def optionReader[A : DynamosReader]: DynamosReader[Option[A]] = new DynamosReader[Option[A]] {
-    override def read(a: AttributeValue): Option[A] =
+    override def read(a: AttributeValue): DynamosResult[Option[A]] =
       if(a.isNULL) {
-        None
+        Right(None)
       } else {
-        Try(implicitly[DynamosReader[A]].read(a))
-          .recover {
-            case _: ReadingException => throw ReadingException("Error while reading Option[A]") // TODO
-          }
-          .toOption
+        implicitly[DynamosReader[A]].read(a)
+          .fold(
+            err => Left(DynamosParsingError(s"Option[${err.field}]")),
+            a => Right(Some(a))
+          )
       }
   }
 
   implicit def collectionReader[A, C[_]]
   (implicit aReader: DynamosReader[A], cbf: CanBuildFrom[Nothing, A, C[A]]): DynamosReader[C[A]] =
     new DynamosReader[C[A]] {
-      override def read(a: AttributeValue): C[A] = a.getL
-        .asScala
-        .map(aReader.read)
-        .to[C]
+      override def read(a: AttributeValue): DynamosResult[C[A]] = {
+        EitherUtil.sequence { // TODO
+          a.getL
+            .asScala
+            .map(aReader.read)
+            .toList
+        }
+          .map(_.to[C])
+      }
     }
 
   implicit def mapReader[A](implicit aReader: DynamosReader[A]): DynamosReader[Map[String, A]] = new DynamosReader[Map[String, A]] {
-    override def read(a: AttributeValue): Map[String, A] =
-      a.getM.asScala.map { case (k, v) => k -> aReader.read(v) }.toMap
+    override def read(a: AttributeValue): DynamosResult[Map[String, A]] = {
+      EitherUtil.map {
+        a.getM.asScala
+          .map { case (k, v) => k -> aReader.read(v) }
+          .toMap
+      }
+    }
+
   }
 
 }

@@ -3,10 +3,10 @@ lazy val commonSettings = Seq(
   organization := "com.coding42",
   name := "DynamoS",
   description := "DynamoS is a Scala to DynamoDB conversion library",
-  version := "0.2.1",
+  version := "0.3.0",
   scalaVersion := "2.12.4",
   crossScalaVersions := Seq("2.11.12", "2.12.4"),
-  scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-Xfatal-warnings")
+  scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-Xfatal-warnings", "-Ypartial-unification")
 )
 
 lazy val testSettings = Seq(
