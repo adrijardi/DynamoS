@@ -6,7 +6,6 @@ import magnolia.{CaseClass, Magnolia, SealedTrait}
 import scala.collection.JavaConverters._
 import scala.language.experimental.macros
 
-
 trait DynamosWriter[-A] {
   def write(a: A): AttributeValue
 }

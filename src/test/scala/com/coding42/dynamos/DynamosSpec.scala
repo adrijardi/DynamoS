@@ -12,6 +12,8 @@ import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import scala.concurrent.ExecutionContextExecutor
 import scala.collection.JavaConverters._
 import DefaultDynamosFormat._
+import DynamosWriter._
+import DynamosReader._
 
 class DynamosSpec extends WordSpec with ScalaFutures with OptionValues with IntegrationPatience with Matchers {
 
@@ -32,31 +34,24 @@ class DynamosSpec extends WordSpec with ScalaFutures with OptionValues with Inte
   val listTablesResult: CreateTableResult = client.single(table).futureValue
 
   case class Test1(id: String, long: Long, double: Double, boolean: Boolean, string: String)
-  implicit val test1Writer: DynamosWriter[Test1] = DynamosWriter.gen[Test1]
   implicit val test1Reader: DynamosReader[Test1] = DynamosReader.gen[Test1]
 
   case class TestList(id: String, list: List[String])
-  implicit val testListWriter: DynamosWriter[TestList] = DynamosWriter.gen[TestList]
   implicit val testListReader: DynamosReader[TestList] = DynamosReader.gen[TestList]
 
   case class TestSet(id: String, set: Set[String])
-  implicit val testSetWriter: DynamosWriter[TestSet] = DynamosWriter.gen[TestSet]
   implicit val testSetReader: DynamosReader[TestSet] = DynamosReader.gen[TestSet]
 
   case class TestMap(id: String, map: Map[String, Int])
-  implicit val testMapWriter: DynamosWriter[TestMap] = DynamosWriter.gen[TestMap]
   implicit val testMapReader: DynamosReader[TestMap] = DynamosReader.gen[TestMap]
 
   case class TestOption(id: String, option: Option[Float])
-  implicit val testOptionWriter: DynamosWriter[TestOption] = DynamosWriter.gen[TestOption]
   implicit val testOptionReader: DynamosReader[TestOption] = DynamosReader.gen[TestOption]
 
   sealed trait TestTrait
   case class SubclassA(id: String, str: String) extends TestTrait
   case class SubclassB(id: String, i: Int) extends TestTrait
   implicit val testTraitReader: DynamosReader[TestTrait] = DynamosReader.gen[TestTrait]
-  implicit val subclassAWriter: DynamosWriter[SubclassA] = DynamosWriter.gen[SubclassA]
-  implicit val subclassBWriter: DynamosWriter[SubclassB] = DynamosWriter.gen[SubclassB]
 
   "can put and get element created by hand" in {
     val item = Map("id" -> new AttributeValue("test1"), "value" -> new AttributeValue("aValue"))
