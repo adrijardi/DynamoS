@@ -15,17 +15,22 @@ object DynamosWriter {
 
   type Typeclass[T] = DynamosWriter[T]
 
-  def combine[T](caseClass: CaseClass[Typeclass, T]): Typeclass[T] = (t: T) => {
-    val parametersMap = caseClass.parameters.map { p =>
-      p.label -> p.typeclass.write(p.dereference(t))
+  def combine[T](caseClass: CaseClass[Typeclass, T]): DynamosWriter[T] = new DynamosWriter[T] {
+    override def write(a: T): AttributeValue = {
+      val parametersMap = caseClass.parameters.map { p =>
+        p.label -> p.typeclass.write(p.dereference(a))
+      }
+      new AttributeValue().withM(parametersMap.toMap.asJava)
     }
-    new AttributeValue().withM(parametersMap.toMap.asJava)
   }
 
-  // TODO review
-  def dispatch[T](sealedTrait: SealedTrait[Typeclass, T]): Typeclass[T] = (t: T) => {
-    sealedTrait.dispatch(t) { subtype =>
-      subtype.typeclass.write(subtype.cast(t))
+  def dispatch[T](sealedTrait: SealedTrait[Typeclass, T]): DynamosWriter[T] = new DynamosWriter[T] {
+    override def write(a: T): AttributeValue = {
+      sealedTrait.dispatch(a) { subtype =>
+        val updatedMap = subtype.typeclass.write(subtype.cast(a)).getM.asScala
+          .updated("dynamos-type", new AttributeValue(subtype.label))
+        new AttributeValue().withM(updatedMap.asJava)
+      }
     }
   }
 

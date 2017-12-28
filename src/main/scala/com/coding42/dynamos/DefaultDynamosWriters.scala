@@ -6,37 +6,56 @@ import scala.collection.JavaConverters._
 
 trait DefaultDynamosWriters {
 
-  implicit val stringWriter: DynamosWriter[String] = (a: String) =>
-    if(a.nonEmpty) {
-      new AttributeValue(a)
-    } else {
-      new AttributeValue().withNULL(true)
-    }
+  implicit object StringWriter extends DynamosWriter[String] {
+    override def write(a: String): AttributeValue =
+      if(a.nonEmpty) {
+        new AttributeValue(a)
+      } else {
+        new AttributeValue().withNULL(true)
+      }
+  }
 
-  implicit val longWriter: DynamosWriter[Long] = (a: Long) => new AttributeValue().withN(a.toString)
+  implicit object LongWriter extends DynamosWriter[Long] {
+    override def write(a: Long): AttributeValue = new AttributeValue().withN(a.toString)
+  }
 
-  implicit val intWriter: DynamosWriter[Int] = (a: Int) => new AttributeValue().withN(a.toString)
+  implicit object IntWriter extends DynamosWriter[Int] {
+    override def write(a: Int): AttributeValue = new AttributeValue().withN(a.toString)
+  }
 
-  implicit val doubleWriter: DynamosWriter[Double] = (a: Double) => new AttributeValue().withN(a.toString)
+  implicit object DoubleWriter extends DynamosWriter[Double] {
+    override def write(a: Double): AttributeValue = new AttributeValue().withN(a.toString)
+  }
 
-  implicit val floatWriter: DynamosWriter[Float] = (a: Float) => new AttributeValue().withN(a.toString)
+  implicit object FloatWriter extends DynamosWriter[Float] {
+    override def write(a: Float): AttributeValue = new AttributeValue().withN(a.toString)
+  }
 
-  implicit val boolWriter: DynamosWriter[Boolean] = (a: Boolean) => new AttributeValue().withBOOL(a)
+  implicit object BoolWriter extends DynamosWriter[Boolean] {
+    override def write(a: Boolean): AttributeValue = new AttributeValue().withBOOL(a)
+  }
 
-  implicit val attributeValueWriter: DynamosWriter[AttributeValue] = (a: AttributeValue) => a
+  implicit object AttributeValueWriter extends DynamosWriter[AttributeValue] {
+    override def write(a: AttributeValue): AttributeValue = a
+  }
 
-  implicit def seqWriter[A](implicit aWriter: DynamosWriter[A]): DynamosWriter[Seq[A]] =
-    (a: Seq[A]) => new AttributeValue().withL(a.map(aWriter.write).asJava)
+  implicit def seqWriter[A](implicit aWriter: DynamosWriter[A]): DynamosWriter[Seq[A]] = new DynamosWriter[Seq[A]] {
+    override def write(a: Seq[A]): AttributeValue = new AttributeValue().withL(a.map(aWriter.write).asJava)
+  }
 
-  implicit def setWriter[A](implicit aWriter: DynamosWriter[A]): DynamosWriter[Set[A]] =
-    (a: Set[A]) => new AttributeValue().withL(a.map(aWriter.write).asJava)
+  implicit def setWriter[A](implicit aWriter: DynamosWriter[A]): DynamosWriter[Set[A]] = new DynamosWriter[Set[A]] {
+    override def write(a: Set[A]): AttributeValue = new AttributeValue().withL(a.map(aWriter.write).asJava)
+  }
 
   implicit def mapWriter[A](implicit aWriter: DynamosWriter[A]): DynamosWriter[collection.Map[String, A]] =
-    (a: collection.Map[String, A]) => new AttributeValue().withM(a.mapValues(aWriter.write).asJava)
+    new DynamosWriter[collection.Map[String, A]] {
+      override def write(a: collection.Map[String, A]): AttributeValue =
+        new AttributeValue().withM(a.mapValues(aWriter.write).asJava)
+    }
 
-  implicit def optionWriter[A](implicit aWriter: DynamosWriter[A]): DynamosWriter[Option[A]] =
-    (a: Option[A]) =>
-      a.map(aWriter.write).getOrElse(new AttributeValue().withNULL(true))
+  implicit def optionWriter[A](implicit aWriter: DynamosWriter[A]): DynamosWriter[Option[A]] = new DynamosWriter[Option[A]] {
+    override def write(a: Option[A]): AttributeValue = a.map(aWriter.write).getOrElse(new AttributeValue().withNULL(true))
+  }
 
 }
 

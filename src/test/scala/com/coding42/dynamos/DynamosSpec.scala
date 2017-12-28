@@ -51,6 +51,13 @@ class DynamosSpec extends WordSpec with ScalaFutures with OptionValues with Inte
   implicit val testOptionWriter: DynamosWriter[TestOption] = DynamosWriter.gen[TestOption]
   implicit val testOptionReader: DynamosReader[TestOption] = DynamosReader.gen[TestOption]
 
+  sealed trait TestTrait
+  case class SubclassA(id: String, str: String) extends TestTrait
+  case class SubclassB(id: String, i: Int) extends TestTrait
+  implicit val testTraitReader: DynamosReader[TestTrait] = DynamosReader.gen[TestTrait]
+  implicit val subclassAWriter: DynamosWriter[SubclassA] = DynamosWriter.gen[SubclassA]
+  implicit val subclassBWriter: DynamosWriter[SubclassB] = DynamosWriter.gen[SubclassB]
+
   "can put and get element created by hand" in {
     val item = Map("id" -> new AttributeValue("test1"), "value" -> new AttributeValue("aValue"))
 
@@ -121,6 +128,16 @@ class DynamosSpec extends WordSpec with ScalaFutures with OptionValues with Inte
     val id = "EmptyStringId"
     val item = Test1(id, 1234, 12.42, true, "")
     storeAndRetrieve(id, item)
+  }
+
+  "Handles sealed traits subclasses" in {
+    val idA = "SubClassA"
+    val itemA: TestTrait = SubclassA(idA, "myStr")
+    storeAndRetrieve(idA, itemA)
+
+    val idB = "SubClassB"
+    val itemB: TestTrait = SubclassB(idB, 42)
+    storeAndRetrieve(idB, itemB)
   }
 
   private def storeAndRetrieve[A : DynamosWriter : DynamosReader](id: String, item: A) = {

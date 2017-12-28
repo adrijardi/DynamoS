@@ -3,8 +3,10 @@ lazy val commonSettings = Seq(
   organization := "com.coding42",
   name := "DynamoS",
   description := "DynamoS is a Scala to DynamoDB conversion library",
-  version := "0.2.0",
-  scalaVersion := "2.12.4"
+  version := "0.2.1",
+  scalaVersion := "2.12.4",
+  crossScalaVersions := Seq("2.11.12", "2.12.4"),
+  scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature", "-Xfatal-warnings")
 )
 
 lazy val testSettings = Seq(
@@ -16,9 +18,6 @@ lazy val testSettings = Seq(
 
 lazy val publishSettings = Seq(
   useGpgAgent := true,
-//  releaseCrossBuild := true,
-//
-//  releasePublishArtifactsAction := PgpKeys.publishSigned.value,
   homepage := Some(url("https://github.com/adrijardi/DynamoS")),
   licenses := Seq("Apache 2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
   publishMavenStyle := true,
@@ -46,7 +45,8 @@ libraryDependencies ++= Seq(
   "com.propensive"      %% "magnolia"                     % "0.6.1",
   "com.amazonaws"       %  "aws-java-sdk-dynamodb"        % "1.11.106",
   "org.scalatest"       %% "scalatest"                    % "3.0.4"     % Test,
-  "com.lightbend.akka"  %% "akka-stream-alpakka-dynamodb" % "0.14"      % Test
+  "com.lightbend.akka"  %% "akka-stream-alpakka-dynamodb" % "0.14"      % Test,
+  "org.scala-lang"      % "scala-compiler"                % scalaVersion.value % Test
 )
 
 lazy val root = project.in(file("."))
