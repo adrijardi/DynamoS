@@ -13,7 +13,6 @@ import scala.concurrent.ExecutionContextExecutor
 import scala.collection.JavaConverters._
 import DefaultDynamosFormat._
 import DynamosWriter._
-import DynamosReader._
 
 class DynamosSpec extends WordSpec with ScalaFutures with OptionValues with IntegrationPatience with Matchers {
 
@@ -34,23 +33,31 @@ class DynamosSpec extends WordSpec with ScalaFutures with OptionValues with Inte
   val listTablesResult: CreateTableResult = client.single(table).futureValue
 
   case class Test1(id: String, long: Long, double: Double, boolean: Boolean, string: String)
+
   implicit val test1Reader: DynamosReader[Test1] = DynamosReader.gen[Test1]
 
   case class TestList(id: String, list: List[String])
+
   implicit val testListReader: DynamosReader[TestList] = DynamosReader.gen[TestList]
 
   case class TestSet(id: String, set: Set[String])
+
   implicit val testSetReader: DynamosReader[TestSet] = DynamosReader.gen[TestSet]
 
   case class TestMap(id: String, map: Map[String, Int])
+
   implicit val testMapReader: DynamosReader[TestMap] = DynamosReader.gen[TestMap]
 
   case class TestOption(id: String, option: Option[Float])
+
   implicit val testOptionReader: DynamosReader[TestOption] = DynamosReader.gen[TestOption]
 
   sealed trait TestTrait
+
   case class SubclassA(id: String, str: String) extends TestTrait
+
   case class SubclassB(id: String, i: Int) extends TestTrait
+
   implicit val testTraitReader: DynamosReader[TestTrait] = DynamosReader.gen[TestTrait]
 
   "can put and get element created by hand" in {
@@ -135,7 +142,14 @@ class DynamosSpec extends WordSpec with ScalaFutures with OptionValues with Inte
     storeAndRetrieve(idB, itemB)
   }
 
-  private def storeAndRetrieve[A : DynamosWriter : DynamosReader](id: String, item: A) = {
+  "fromDynamo parses lists of items" in {
+    val initial = (1 to 10).map(i => TestOption(i.toString, Some(i)))
+    val converted = initial.map(_.toDynamoDb.getM).asJava
+
+    Dynamos.fromDynamo[TestOption, List](converted) shouldBe Right(initial)
+  }
+
+  private def storeAndRetrieve[A: DynamosWriter : DynamosReader](id: String, item: A) = {
     client.single(new PutItemRequest(tableName, item.toDynamoDb.getM)).futureValue
 
     val result = client.single(new GetItemRequest(tableName, Map("id" -> id).toDynamoKey)).futureValue

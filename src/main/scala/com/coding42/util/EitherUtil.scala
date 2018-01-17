@@ -7,8 +7,8 @@ import scala.language.higherKinds
 
 object EitherUtil {
 
-  def sequence[L,R,M[X] <: TraversableOnce[X]](seq: M[Either[L, R]])
-                                              (implicit cbf: CanBuildFrom[List[R], R, M[R]]): Either[L, M[R]] = {
+  def sequence[L, R, M[X] <: TraversableOnce[X]](seq: M[Either[L, R]])
+                                                (implicit cbf: CanBuildFrom[Nothing, R, M[R]]): Either[L, M[R]] = {
     Right {
       seq.foldRight(List.empty[R]) { case (a, res) =>
         a match {
@@ -20,9 +20,9 @@ object EitherUtil {
     }
   }
 
-  def map[L,K,R](seq: Map[K, Either[L, R]], leftCombine: (K, L) => L): Either[L, Map[K, R]] = {
+  def map[L, K, R](seq: Map[K, Either[L, R]], leftCombine: (K, L) => L): Either[L, Map[K, R]] = {
     Right {
-      seq.foldLeft(Map.empty[K,R]) { case (res, a) =>
+      seq.foldLeft(Map.empty[K, R]) { case (res, a) =>
         a match {
           case (k, Left(l)) => return Left[L, Map[K, R]](leftCombine(k, l))
           case (k, Right(r)) => res + (k -> r)
@@ -31,8 +31,8 @@ object EitherUtil {
     }
   }
 
-  def map[K,R](seq: Map[K, Either[DynamosParsingError, R]]): Either[DynamosParsingError, Map[K, R]] = {
-    map[DynamosParsingError, K,R](seq, (k, l) => DynamosParsingError(s"$k -> ${l.field}"))
+  def map[K, R](seq: Map[K, Either[DynamosParsingError, R]]): Either[DynamosParsingError, Map[K, R]] = {
+    map[DynamosParsingError, K, R](seq, (k, l) => DynamosParsingError(s"$k -> ${l.field}"))
   }
 
 }

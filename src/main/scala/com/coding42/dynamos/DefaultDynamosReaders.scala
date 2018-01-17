@@ -70,13 +70,13 @@ trait DefaultDynamosReaders {
   (implicit aReader: DynamosReader[A], cbf: CanBuildFrom[Nothing, A, C[A]]): DynamosReader[C[A]] =
     new DynamosReader[C[A]] {
       override def read(a: AttributeValue): DynamosResult[C[A]] = {
-        EitherUtil.sequence { // TODO
+        EitherUtil.sequence {
           a.getL
             .asScala
             .map(aReader.read)
             .toList
         }
-          .map(_.to[C])
+          .right.map(_.to[C])
       }
     }
 
