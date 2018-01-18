@@ -146,13 +146,13 @@ class DynamosSpec extends WordSpec with ScalaFutures with OptionValues with Inte
     val initial = (1 to 10).map(i => TestOption(i.toString, Some(i)))
     val converted = initial.map(_.toDynamoDb.getM).asJava
 
-    Dynamos.fromDynamo[TestOption, List](converted) shouldBe Right(initial)
+    Dynamos.fromDynamo[TestOption](converted).toList shouldBe initial.map(Right(_))
   }
 
   private def storeAndRetrieve[A: DynamosWriter : DynamosReader](id: String, item: A) = {
     client.single(new PutItemRequest(tableName, item.toDynamoDb.getM)).futureValue
 
     val result = client.single(new GetItemRequest(tableName, Map("id" -> id).toDynamoKey)).futureValue
-    Dynamos.fromDynamo[A](result).value shouldBe Right(item)
+    Dynamos.fromDynamoOp[A](result).value shouldBe Right(item)
   }
 }
