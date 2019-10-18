@@ -10,7 +10,8 @@ lazy val commonSettings = Seq(
     "-deprecation",
     "-feature",
     "-Xfatal-warnings",
-    "-Ypartial-unification"
+    "-Ypartial-unification",
+    "-language:higherKinds"
   )
 )
 
@@ -58,7 +59,7 @@ lazy val publishSettings = Seq(
 )
 
 libraryDependencies ++= Seq(
-  "com.propensive"     %% "magnolia"                     % "0.6.1",
+  "com.propensive"     %% "magnolia"                     % "0.12.0",
   "com.amazonaws"      % "aws-java-sdk-dynamodb"         % "1.11.106",
   "org.scalatest"      %% "scalatest"                    % "3.0.4" % Test,
   "com.lightbend.akka" %% "akka-stream-alpakka-dynamodb" % "0.14" % Test,

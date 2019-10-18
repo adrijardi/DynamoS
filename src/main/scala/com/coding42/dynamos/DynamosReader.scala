@@ -41,7 +41,7 @@ object DynamosReader {
   def dispatch[A](sealedTrait: SealedTrait[Typeclass, A]): DynamosReader[A] = new DynamosReader[A] {
     override def read(a: AttributeValue): DynamosResult[A] = {
       val typeName = a.getM.asScala("dynamos-type")
-      val subtype  = sealedTrait.subtypes.find(_.label == typeName.getS).get
+      val subtype  = sealedTrait.subtypes.find(_.typeName.full == typeName.getS).get
       subtype.typeclass.read(a)
     }
   }

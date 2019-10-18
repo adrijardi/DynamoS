@@ -28,7 +28,7 @@ class DynamosSpec extends WordSpec with ScalaFutures with OptionValues with Inte
     List(new AttributeDefinition("id", ScalarAttributeType.S)).asJava,
     tableName,
     List(new KeySchemaElement("id", KeyType.HASH)).asJava,
-    new ProvisionedThroughput(5, 5)
+    new ProvisionedThroughput(5L, 5L)
   )
   val listTablesResult: CreateTableResult = client.single(table).futureValue
 

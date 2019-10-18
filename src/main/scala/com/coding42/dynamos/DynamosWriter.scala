@@ -30,7 +30,7 @@ object DynamosWriter {
           .write(subtype.cast(a))
           .getM
           .asScala
-          .updated("dynamos-type", new AttributeValue(subtype.label))
+          .updated("dynamos-type", new AttributeValue(subtype.typeName.full))
         new AttributeValue().withM(updatedMap.asJava)
       }
   }
