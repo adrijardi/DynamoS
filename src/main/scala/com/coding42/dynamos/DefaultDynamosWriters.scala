@@ -8,7 +8,7 @@ trait DefaultDynamosWriters {
 
   implicit object StringWriter extends DynamosWriter[String] {
     override def write(a: String): AttributeValue =
-      if(a.nonEmpty) {
+      if (a.nonEmpty) {
         new AttributeValue(a)
       } else {
         new AttributeValue().withNULL(true)
@@ -53,9 +53,11 @@ trait DefaultDynamosWriters {
         new AttributeValue().withM(a.mapValues(aWriter.write).asJava)
     }
 
-  implicit def optionWriter[A](implicit aWriter: DynamosWriter[A]): DynamosWriter[Option[A]] = new DynamosWriter[Option[A]] {
-    override def write(a: Option[A]): AttributeValue = a.map(aWriter.write).getOrElse(new AttributeValue().withNULL(true))
-  }
+  implicit def optionWriter[A](implicit aWriter: DynamosWriter[A]): DynamosWriter[Option[A]] =
+    new DynamosWriter[Option[A]] {
+      override def write(a: Option[A]): AttributeValue =
+        a.map(aWriter.write).getOrElse(new AttributeValue().withNULL(true))
+    }
 
 }
 

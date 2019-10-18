@@ -25,22 +25,30 @@ package object dynamos {
 
   object Dynamos {
 
-    def fromDynamo[A](i: GetItemResult)(implicit reader: DynamosReader[A]): DynamosResult[Option[A]] = fromDynamo(i.getItem)
+    def fromDynamo[A](i: GetItemResult)(implicit reader: DynamosReader[A]): DynamosResult[Option[A]] =
+      fromDynamo(i.getItem)
 
-    def fromDynamo[A](i: java.util.Map[String, AttributeValue])(implicit reader: DynamosReader[A]): DynamosResult[Option[A]] =
+    def fromDynamo[A](
+      i: java.util.Map[String, AttributeValue]
+    )(implicit reader: DynamosReader[A]): DynamosResult[Option[A]] =
       Option(i) match {
-        case Some(map)  => reader.read(new AttributeValue().withM(map)).map(Some(_))
-        case None       => Right(None)
+        case Some(map) => reader.read(new AttributeValue().withM(map)).map(Some(_))
+        case None      => Right(None)
       }
 
-    def fromDynamoOp[A](i: GetItemResult)(implicit reader: DynamosReader[A]): Option[DynamosResult[A]] = fromDynamoOp(i.getItem)
+    def fromDynamoOp[A](i: GetItemResult)(implicit reader: DynamosReader[A]): Option[DynamosResult[A]] =
+      fromDynamoOp(i.getItem)
 
-    def fromDynamoOp[A](i: java.util.Map[String, AttributeValue])(implicit reader: DynamosReader[A]): Option[DynamosResult[A]] =
+    def fromDynamoOp[A](
+      i: java.util.Map[String, AttributeValue]
+    )(implicit reader: DynamosReader[A]): Option[DynamosResult[A]] =
       Option(i).map { map =>
         reader.read(new AttributeValue().withM(map))
       }
 
-    def fromDynamo[A: DynamosReader](i: java.util.Collection[java.util.Map[String, AttributeValue]]): Iterable[DynamosResult[A]] =
+    def fromDynamo[A: DynamosReader](
+      i: java.util.Collection[java.util.Map[String, AttributeValue]]
+    ): Iterable[DynamosResult[A]] =
       i.asScala.flatMap(fromDynamoOp[A](_))
 
   }

@@ -53,12 +53,13 @@ trait DefaultDynamosReaders {
         .toRight(DynamosParsingError("Boolean"))
   }
 
-  implicit def optionReader[A : DynamosReader]: DynamosReader[Option[A]] = new DynamosReader[Option[A]] {
+  implicit def optionReader[A: DynamosReader]: DynamosReader[Option[A]] = new DynamosReader[Option[A]] {
     override def read(a: AttributeValue): DynamosResult[Option[A]] =
-      if(a.isNULL) {
+      if (a.isNULL) {
         Right(None)
       } else {
-        implicitly[DynamosReader[A]].read(a)
+        implicitly[DynamosReader[A]]
+          .read(a)
           .fold(
             err => Left(DynamosParsingError(s"Option[${err.field}]")),
             a => Right(Some(a))
@@ -66,30 +67,27 @@ trait DefaultDynamosReaders {
       }
   }
 
-  implicit def collectionReader[A, C[_]]
-  (implicit aReader: DynamosReader[A], cbf: CanBuildFrom[Nothing, A, C[A]]): DynamosReader[C[A]] =
+  implicit def collectionReader[A, C[_]](
+    implicit aReader: DynamosReader[A],
+    cbf: CanBuildFrom[Nothing, A, C[A]]
+  ): DynamosReader[C[A]] =
     new DynamosReader[C[A]] {
-      override def read(a: AttributeValue): DynamosResult[C[A]] = {
+      override def read(a: AttributeValue): DynamosResult[C[A]] =
         EitherUtil.sequence {
-          a.getL
-            .asScala
+          a.getL.asScala
             .map(aReader.read)
             .toList
+        }.right.map(_.to[C])
+    }
+
+  implicit def mapReader[A](implicit aReader: DynamosReader[A]): DynamosReader[Map[String, A]] =
+    new DynamosReader[Map[String, A]] {
+      override def read(a: AttributeValue): DynamosResult[Map[String, A]] =
+        EitherUtil.map {
+          a.getM.asScala.map { case (k, v) => k -> aReader.read(v) }.toMap
         }
-          .right.map(_.to[C])
-      }
-    }
 
-  implicit def mapReader[A](implicit aReader: DynamosReader[A]): DynamosReader[Map[String, A]] = new DynamosReader[Map[String, A]] {
-    override def read(a: AttributeValue): DynamosResult[Map[String, A]] = {
-      EitherUtil.map {
-        a.getM.asScala
-          .map { case (k, v) => k -> aReader.read(v) }
-          .toMap
-      }
     }
-
-  }
 
 }
 

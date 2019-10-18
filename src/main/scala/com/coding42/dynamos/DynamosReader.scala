@@ -22,16 +22,17 @@ object DynamosReader {
       val params = a.getM.asScala // TODO check what happens when getM is not valid
       Try {
         caseClass.construct { p =>
-          p.typeclass.read(params(p.label))
-           .fold(
-             err => throw DynamosInternalException(err),
-             identity
-           )
+          p.typeclass
+            .read(params(p.label))
+            .fold(
+              err => throw DynamosInternalException(err),
+              identity
+            )
         }
-      }
-        .map(Right(_))
-        .recover { case DynamosInternalException(error) =>
-          Left(error)
+      }.map(Right(_))
+        .recover {
+          case DynamosInternalException(error) =>
+            Left(error)
         }
         .get
     }
@@ -40,7 +41,7 @@ object DynamosReader {
   def dispatch[A](sealedTrait: SealedTrait[Typeclass, A]): DynamosReader[A] = new DynamosReader[A] {
     override def read(a: AttributeValue): DynamosResult[A] = {
       val typeName = a.getM.asScala("dynamos-type")
-      val subtype = sealedTrait.subtypes.find(_.label == typeName.getS).get
+      val subtype  = sealedTrait.subtypes.find(_.label == typeName.getS).get
       subtype.typeclass.read(a)
     }
   }

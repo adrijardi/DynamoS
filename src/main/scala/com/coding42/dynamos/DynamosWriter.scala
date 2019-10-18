@@ -24,13 +24,15 @@ object DynamosWriter {
   }
 
   def dispatch[T](sealedTrait: SealedTrait[Typeclass, T]): DynamosWriter[T] = new DynamosWriter[T] {
-    override def write(a: T): AttributeValue = {
+    override def write(a: T): AttributeValue =
       sealedTrait.dispatch(a) { subtype =>
-        val updatedMap = subtype.typeclass.write(subtype.cast(a)).getM.asScala
+        val updatedMap = subtype.typeclass
+          .write(subtype.cast(a))
+          .getM
+          .asScala
           .updated("dynamos-type", new AttributeValue(subtype.label))
         new AttributeValue().withM(updatedMap.asJava)
       }
-    }
   }
 
   implicit def gen[T]: Typeclass[T] = macro Magnolia.gen[T]
