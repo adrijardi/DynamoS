@@ -1,7 +1,7 @@
 package com.coding42.dynamos
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue
 import magnolia.{CaseClass, Magnolia, SealedTrait}
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
 import scala.collection.JavaConverters._
 import scala.language.experimental.macros
@@ -19,7 +19,7 @@ object DynamosReader {
 
   def combine[A](caseClass: CaseClass[Typeclass, A]): DynamosReader[A] = new DynamosReader[A] {
     override def read(a: AttributeValue): DynamosResult[A] = {
-      val params = a.getM.asScala // TODO check what happens when getM is not valid
+      val params = a.m().asScala // TODO check what happens when getM is not valid
       Try {
         caseClass.construct { p =>
           p.typeclass
@@ -40,8 +40,8 @@ object DynamosReader {
 
   def dispatch[A](sealedTrait: SealedTrait[Typeclass, A]): DynamosReader[A] = new DynamosReader[A] {
     override def read(a: AttributeValue): DynamosResult[A] = {
-      val typeName = a.getM.asScala("dynamos-type")
-      val subtype  = sealedTrait.subtypes.find(_.typeName.full == typeName.getS).get
+      val typeName = a.m().asScala("dynamos-type")
+      val subtype  = sealedTrait.subtypes.find(_.typeName.full == typeName.s()).get
       subtype.typeclass.read(a)
     }
   }

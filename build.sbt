@@ -58,12 +58,14 @@ lazy val publishSettings = Seq(
   )
 )
 
+val awsSdkV = "2.5.65"
+
 libraryDependencies ++= Seq(
-  "com.propensive"     %% "magnolia"                     % "0.12.0",
-  "com.amazonaws"      % "aws-java-sdk-dynamodb"         % "1.11.106",
-  "org.scalatest"      %% "scalatest"                    % "3.0.4" % Test,
-  "com.lightbend.akka" %% "akka-stream-alpakka-dynamodb" % "0.14" % Test,
-  "org.scala-lang"     % "scala-compiler"                % scalaVersion.value % Test
+  "com.propensive"         %% "magnolia"           % "0.12.0",
+  "software.amazon.awssdk" % "dynamodb"            % awsSdkV,
+  "org.scalatest"          %% "scalatest"          % "3.0.4" % Test,
+  "org.scala-lang"         % "scala-compiler"      % scalaVersion.value % Test,
+  "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.0"
 )
 
 lazy val root = project

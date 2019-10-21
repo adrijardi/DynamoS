@@ -1,7 +1,7 @@
 package com.coding42.dynamos
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue
 import com.coding42.util.EitherUtil
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
 import scala.collection.JavaConverters._
 import scala.collection.generic.CanBuildFrom
@@ -11,51 +11,51 @@ trait DefaultDynamosReaders {
 
   implicit object StringReader extends DynamosReader[String] {
     override def read(a: AttributeValue): DynamosResult[String] =
-      if (a.isNULL)
+      if (a.nul())
         Right("")
       else
-        Option(a.getS)
+        Option(a.s())
           .toRight(DynamosParsingError("String"))
   }
 
   implicit object LongReader extends DynamosReader[Long] {
     override def read(a: AttributeValue): DynamosResult[Long] =
-      Option(a.getN)
+      Option(a.n())
         .map(_.toLong)
         .toRight(DynamosParsingError("Long"))
   }
 
   implicit object IntReader extends DynamosReader[Int] {
     override def read(a: AttributeValue): DynamosResult[Int] =
-      Option(a.getN)
+      Option(a.n())
         .map(_.toInt)
         .toRight(DynamosParsingError("Int"))
   }
 
   implicit object DoubleReader extends DynamosReader[Double] {
     override def read(a: AttributeValue): DynamosResult[Double] =
-      Option(a.getN)
+      Option(a.n())
         .map(_.toDouble)
         .toRight(DynamosParsingError("Double"))
   }
 
   implicit object FloatReader extends DynamosReader[Float] {
     override def read(a: AttributeValue): DynamosResult[Float] =
-      Option(a.getN)
+      Option(a.n())
         .map(_.toFloat)
         .toRight(DynamosParsingError("Float"))
   }
 
   implicit object BoolReader extends DynamosReader[Boolean] {
     override def read(a: AttributeValue): DynamosResult[Boolean] =
-      Option(a.getBOOL)
+      Option(a.bool())
         .map(Boolean.unbox)
         .toRight(DynamosParsingError("Boolean"))
   }
 
   implicit def optionReader[A: DynamosReader]: DynamosReader[Option[A]] = new DynamosReader[Option[A]] {
     override def read(a: AttributeValue): DynamosResult[Option[A]] =
-      if (a.isNULL) {
+      if (a.nul()) {
         Right(None)
       } else {
         implicitly[DynamosReader[A]]
@@ -74,7 +74,7 @@ trait DefaultDynamosReaders {
     new DynamosReader[C[A]] {
       override def read(a: AttributeValue): DynamosResult[C[A]] =
         EitherUtil.sequence {
-          a.getL.asScala
+          a.l.asScala
             .map(aReader.read)
             .toList
         }.right.map(_.to[C])
@@ -84,7 +84,7 @@ trait DefaultDynamosReaders {
     new DynamosReader[Map[String, A]] {
       override def read(a: AttributeValue): DynamosResult[Map[String, A]] =
         EitherUtil.map {
-          a.getM.asScala.map { case (k, v) => k -> aReader.read(v) }.toMap
+          a.m.asScala.map { case (k, v) => k -> aReader.read(v) }.toMap
         }
 
     }

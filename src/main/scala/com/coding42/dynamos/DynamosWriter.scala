@@ -1,7 +1,7 @@
 package com.coding42.dynamos
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue
 import magnolia.{CaseClass, Magnolia, SealedTrait}
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
 import scala.collection.JavaConverters._
 import scala.language.experimental.macros
@@ -19,7 +19,7 @@ object DynamosWriter {
       val parametersMap = caseClass.parameters.map { p =>
         p.label -> p.typeclass.write(p.dereference(a))
       }
-      new AttributeValue().withM(parametersMap.toMap.asJava)
+      AttributeValue.builder().m(parametersMap.toMap.asJava).build()
     }
   }
 
@@ -28,10 +28,10 @@ object DynamosWriter {
       sealedTrait.dispatch(a) { subtype =>
         val updatedMap = subtype.typeclass
           .write(subtype.cast(a))
-          .getM
+          .m()
           .asScala
-          .updated("dynamos-type", new AttributeValue(subtype.typeName.full))
-        new AttributeValue().withM(updatedMap.asJava)
+          .updated("dynamos-type", AttributeValue.builder().s(subtype.typeName.full).build())
+        AttributeValue.builder().m(updatedMap.asJava).build()
       }
   }
 
