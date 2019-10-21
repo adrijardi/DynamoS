@@ -1,6 +1,5 @@
 package com.coding42.dynamos
 
-
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 
 import scala.collection.JavaConverters._
