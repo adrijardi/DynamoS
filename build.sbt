@@ -2,7 +2,7 @@ lazy val commonSettings = Seq(
   organization := "com.coding42",
   name := "DynamoS",
   description := "DynamoS is a Scala to DynamoDB conversion library",
-  version := "0.4.1",
+  version := "0.5.0",
   scalaVersion := "2.12.9",
   crossScalaVersions := Seq("2.11.12", "2.12.9", "2.13.1"),
   scalacOptions ++= Seq(
@@ -10,7 +10,8 @@ lazy val commonSettings = Seq(
     "-deprecation",
     "-feature",
     "-Xfatal-warnings",
-    "-Ypartial-unification"
+    "-Ypartial-unification",
+    "-language:higherKinds"
   )
 )
 
@@ -57,12 +58,14 @@ lazy val publishSettings = Seq(
   )
 )
 
+val awsSdkV = "2.5.65"
+
 libraryDependencies ++= Seq(
-  "com.propensive"     %% "magnolia"                     % "0.6.1",
-  "com.amazonaws"      % "aws-java-sdk-dynamodb"         % "1.11.106",
-  "org.scalatest"      %% "scalatest"                    % "3.0.4" % Test,
-  "com.lightbend.akka" %% "akka-stream-alpakka-dynamodb" % "0.14" % Test,
-  "org.scala-lang"     % "scala-compiler"                % scalaVersion.value % Test
+  "com.propensive"         %% "magnolia"           % "0.12.0",
+  "software.amazon.awssdk" % "dynamodb"            % awsSdkV,
+  "org.scalatest"          %% "scalatest"          % "3.0.4" % Test,
+  "org.scala-lang"         % "scala-compiler"      % scalaVersion.value % Test,
+  "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.0"
 )
 
 lazy val root = project
