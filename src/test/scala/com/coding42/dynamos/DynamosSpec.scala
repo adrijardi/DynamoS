@@ -2,26 +2,16 @@ package com.coding42.dynamos
 
 import java.net.URI
 
-import org.scalatest.{Matchers, OptionValues, WordSpec}
+import com.coding42.dynamos.DefaultDynamosFormat._
+import com.coding42.dynamos.DynamosWriter._
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
+import org.scalatest.{Matchers, OptionValues, WordSpec}
+import software.amazon.awssdk.auth.credentials.{AwsBasicCredentials, StaticCredentialsProvider}
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient
+import software.amazon.awssdk.services.dynamodb.model._
 
 import scala.collection.JavaConverters._
-import DefaultDynamosFormat._
-import DynamosWriter._
-import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient
-import software.amazon.awssdk.services.dynamodb.model.{
-  AttributeDefinition,
-  AttributeValue,
-  CreateTableRequest,
-  GetItemRequest,
-  GetItemResponse,
-  KeySchemaElement,
-  KeyType,
-  ProvisionedThroughput,
-  PutItemRequest,
-  ScalarAttributeType
-}
-
 import scala.compat.java8.FutureConverters._
 
 class DynamosSpec extends WordSpec with ScalaFutures with OptionValues with IntegrationPatience with Matchers {
@@ -29,6 +19,8 @@ class DynamosSpec extends WordSpec with ScalaFutures with OptionValues with Inte
   val client: DynamoDbAsyncClient = DynamoDbAsyncClient
     .builder()
     .endpointOverride(URI.create("http://localhost:8000"))
+    .region(Region.EU_WEST_1)
+    .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("test", "pass")))
     .build()
 
   private val tableName = "test-table"
