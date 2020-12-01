@@ -40,9 +40,11 @@ package object dynamos {
     def fromDynamoOp[A](
       i: java.util.Map[String, AttributeValue]
     )(implicit reader: DynamosReader[A]): Option[DynamosResult[A]] =
-      Option(i).map { map =>
-        reader.read(AttributeValue.builder().m(map).build())
-      }
+      Option(i)
+        .filter(_.isEmpty == false)
+        .map { map =>
+          reader.read(AttributeValue.builder().m(map).build())
+        }
 
     def fromDynamo[A: DynamosReader](
       i: java.util.Collection[java.util.Map[String, AttributeValue]]

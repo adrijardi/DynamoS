@@ -5,7 +5,9 @@ import java.net.URI
 import com.coding42.dynamos.DefaultDynamosFormat._
 import com.coding42.dynamos.DynamosWriter._
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
-import org.scalatest.{Matchers, OptionValues, WordSpec}
+import org.scalatest.OptionValues
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import software.amazon.awssdk.auth.credentials.{AwsBasicCredentials, StaticCredentialsProvider}
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient
@@ -14,7 +16,7 @@ import software.amazon.awssdk.services.dynamodb.model._
 import scala.collection.JavaConverters._
 import scala.compat.java8.FutureConverters._
 
-class DynamosSpec extends WordSpec with ScalaFutures with OptionValues with IntegrationPatience with Matchers {
+class DynamosSpec extends AnyWordSpec with OptionValues with ScalaFutures with IntegrationPatience with Matchers {
 
   val client: DynamoDbAsyncClient = DynamoDbAsyncClient
     .builder()
@@ -25,33 +27,7 @@ class DynamosSpec extends WordSpec with ScalaFutures with OptionValues with Inte
 
   private val tableName = "test-table"
 
-  private val attributeDefinition = AttributeDefinition
-    .builder()
-    .attributeName("id")
-    .attributeType(ScalarAttributeType.S)
-    .build()
-
-  private val keySchemaElement = KeySchemaElement
-    .builder()
-    .attributeName("id")
-    .keyType(KeyType.HASH)
-    .build()
-
-  private val provisionedThrougput = ProvisionedThroughput
-    .builder()
-    .readCapacityUnits(5L)
-    .writeCapacityUnits(5L)
-    .build()
-
-  private val table = CreateTableRequest
-    .builder()
-    .attributeDefinitions(List(attributeDefinition).asJava)
-    .tableName(tableName)
-    .keySchema(List(keySchemaElement).asJava)
-    .provisionedThroughput(provisionedThrougput)
-    .build()
-
-  val listTablesResult = client.createTable(table).toScala.futureValue
+  val createTablesResult = TableHelpers.createTable(tableName, client).futureValue
 
   case class Test1(id: String, long: Long, double: Double, boolean: Boolean, string: String)
 

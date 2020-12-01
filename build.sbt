@@ -63,9 +63,10 @@ val awsSdkV = "2.5.65"
 libraryDependencies ++= Seq(
   "com.propensive"         %% "magnolia"           % "0.12.0",
   "software.amazon.awssdk" % "dynamodb"            % awsSdkV,
-  "org.scalatest"          %% "scalatest"          % "3.0.4" % Test,
+  "org.scalatest"          %% "scalatest"          % "3.1.0" % Test,
   "org.scala-lang"         % "scala-compiler"      % scalaVersion.value % Test,
-  "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.0"
+  "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.0",
+  "org.typelevel" %% "cats-effect" % "2.1.3",
 )
 
 lazy val root = project
